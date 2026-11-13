@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#f6f7f2">
+  <title>RideAlong — Share the road</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="script.js" defer></script>
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="#" aria-label="RideAlong home">
+      <span class="brand-mark" aria-hidden="true">R</span>
+      RideAlong
+    </a>
+    <nav aria-label="Main navigation">
+      <a href="#rides">Find a ride</a>
+      <a href="#how-it-works">How it works</a>
+    </nav>
+    <a class="offer-link" href="#rides">Offer a seat <span aria-hidden="true">↗</span></a>
+  </header>
+
+  <main>
+    <section class="hero" aria-labelledby="hero-title">
+      <div class="hero-copy">
+        <p class="eyebrow"><span class="eyebrow-dot"></span> GOOD TRIPS, BETTER TOGETHER</p>
+        <h1 id="hero-title">Your next ride<br>is <span>closer</span> than you think.</h1>
+        <p class="hero-description">Find a seat, meet your people, and make the journey part of the adventure.</p>
+      </div>
+
+      <form class="search-panel" id="ride-search">
+        <label class="search-field">
+          <span class="field-icon" aria-hidden="true">⌖</span>
+          <span class="field-content">
+            <span class="field-label">Leaving from</span>
+            <input id="from" name="from" type="text" placeholder="City or address" autocomplete="off">
+          </span>
+        </label>
+        <span class="search-divider" aria-hidden="true"></span>
+        <label class="search-field">
+          <span class="field-icon destination-icon" aria-hidden="true">⌖</span>
+          <span class="field-content">
+            <span class="field-label">Going to</span>
+            <input id="to" name="to" type="text" placeholder="Where to?" autocomplete="off">
+          </span>
+        </label>
+        <button class="search-button" type="submit"><span aria-hidden="true">⌕</span> Find a ride</button>
+      </form>
+
+      <div class="hero-note"><span aria-hidden="true">✦</span> Less traffic. More connection.</div>
+      <div class="hero-decoration decoration-one" aria-hidden="true"></div>
+      <div class="hero-decoration decoration-two" aria-hidden="true"></div>
+    </section>
+
+    <section class="rides-section" id="rides" aria-labelledby="rides-title">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">MADE FOR THE WAY YOU GO</p>
+          <h2 id="rides-title">Rides near you</h2>
+        </div>
+        <p class="ride-count" id="ride-count" aria-live="polite">3 rides available</p>
+      </div>
+
+      <div class="ride-list" id="ride-list">
+        <article class="ride-card" data-from="Brooklyn, New York" data-to="Hudson Valley, New York">
+          <div class="ride-date"><span class="date-month">JUN</span><span class="date-day">14</span><span class="date-weekday">SAT</span></div>
+          <div class="ride-route">
+            <div class="route-point"><span class="route-dot"></span><div><strong>Brooklyn</strong><span>9:30 AM · Prospect Heights</span></div></div>
+            <div class="route-line"></div>
+            <div class="route-point"><span class="route-dot end-dot"></span><div><strong>Hudson Valley</strong><span>11:45 AM · Main Street</span></div></div>
+          </div>
+          <div class="ride-driver"><span class="avatar avatar-peach">J</span><span><strong>Jamie R.</strong><small>Friendly driver</small></span></div>
+          <div class="ride-seats"><strong>$18</strong><span>2 seats left</span></div>
+          <button class="seat-button" type="button" aria-label="Select a seat on the ride to Hudson Valley">Select seat <span aria-hidden="true">→</span></button>
+        </article>
+
+        <article class="ride-card" data-from="Queens, New York" data-to="Montauk, New York">
+          <div class="ride-date"><span class="date-month">JUN</span><span class="date-day">15</span><span class="date-weekday">SUN</span></div>
+          <div class="ride-route">
+            <div class="route-point"><span class="route-dot"></span><div><strong>Queens</strong><span>7:15 AM · Jackson Heights</span></div></div>
+            <div class="route-line"></div>
+            <div class="route-point"><span class="route-dot end-dot"></span><div><strong>Montauk</strong><span>10:40 AM · Town Center</span></div></div>
+          </div>
+          <div class="ride-driver"><span class="avatar avatar-lavender">A</span><span><strong>Alex M.</strong><small>4.9 ★ · 12 rides</small></span></div>
+          <div class="ride-seats"><strong>$26</strong><span>1 seat left</span></div>
+          <button class="seat-button" type="button" aria-label="Select a seat on the ride to Montauk">Select seat <span aria-hidden="true">→</span></button>
+        </article>
+
+        <article class="ride-card" data-from="Manhattan, New York" data-to="Beacon, New York">
+          <div class="ride-date"><span class="date-month">JUN</span><span class="date-day">15</span><span class="date-weekday">SUN</span></div>
+          <div class="ride-route">
+            <div class="route-point"><span class="route-dot"></span><div><strong>Manhattan</strong><span>10:00 AM · Union Square</span></div></div>
+            <div class="route-line"></div>
+            <div class="route-point"><span class="route-dot end-dot"></span><div><strong>Beacon</strong><span>11:35 AM · Beacon Station</span></div></div>
+          </div>
+          <div class="ride-driver"><span class="avatar avatar-mint">S</span><span><strong>Sam T.</strong><small>Easygoing driver</small></span></div>
+          <div class="ride-seats"><strong>$15</strong><span>3 seats left</span></div>
+          <button class="seat-button" type="button" aria-label="Select a seat on the ride to Beacon">Select seat <span aria-hidden="true">→</span></button>
+        </article>
+      </div>
+      <p class="empty-state" id="empty-state" hidden>No rides match that route. Try another city.</p>
+    </section>
+
+    <section class="how-section" id="how-it-works" aria-labelledby="how-title">
+      <p class="eyebrow">SIMPLE AS THE OPEN ROAD</p>
+      <h2 id="how-title">Good things happen <span>along the way.</span></h2>
+      <div class="steps">
+        <div class="step"><span class="step-number">01</span><h3>Pick your route</h3><p>Search rides heading where you want to go.</p></div>
+        <div class="step"><span class="step-number">02</span><h3>Meet your match</h3><p>Choose a friendly driver and a seat that works for you.</p></div>
+        <div class="step"><span class="step-number">03</span><h3>Enjoy the ride</h3><p>Share the journey. Leave the driving to someone else.</p></div>
+      </div>
+    </section>
+  </main>
+
+  <footer><a class="brand footer-brand" href="#"><span class="brand-mark" aria-hidden="true">R</span> RideAlong</a><span>Better journeys start together.</span></footer>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+</body>
+</html>
