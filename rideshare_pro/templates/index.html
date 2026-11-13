@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RideShare Pro — Private Car Seat Sharing</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Clash+Display:wght@400;500;600;700&family=Syne:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Leaflet CSS for Maps -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+</head>
+<body>
+
+<!-- BG ORBS -->
+<div class="bg-orb bg-orb-1"></div>
+<div class="bg-orb bg-orb-2"></div>
+
+<!-- NOTIFICATION STACK -->
+<div class="notif-stack" id="notifStack"></div>
+
+<!-- ============================================================
+     LOGIN PAGE
+     ============================================================ -->
+<div id="loginPage" class="page">
+  <div class="login-container">
+    <div class="login-logo">
+      <span class="logo-icon">🚗</span>
+      <h1>RideShare Pro</h1>
+      <p>Private Car Seat Sharing Platform</p>
+    </div>
+    <div class="glass-card login-card">
+      <h2>Welcome Back</h2>
+      <div class="role-tabs">
+        <button class="role-tab active" onclick="selectRole('admin',this)">👑 Admin</button>
+        <button class="role-tab" onclick="selectRole('driver',this)">🚗 Driver</button>
+        <button class="role-tab" onclick="selectRole('client',this)">🧑 Client</button>
+      </div>
+      <div class="login-form">
+        <div class="form-group">
+          <label class="form-label">Username</label>
+          <input class="form-input" id="loginUser" type="text" placeholder="Enter username">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Password</label>
+          <input class="form-input" id="loginPass" type="password" placeholder="Enter password">
+        </div>
+        <div id="loginError" class="error-msg hidden"></div>
+        <button class="btn btn-primary w-full" onclick="doLogin()">🔑 Sign In</button>
+        <p class="login-hint">Admin: admin/admin123 · Driver: driver1/pass123 · Client: alice/pass123</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================
+     MAIN APP
+     ============================================================ -->
+<div id="appLayout">
+  <!-- Sidebar overlay for mobile -->
+  <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+
+  <!-- SIDEBAR -->
+  <nav class="sidebar" id="sidebar">
+    <div class="sidebar-logo">
+      <span class="logo-dot">🚗</span>
+      <span class="logo-text">RideShare Pro</span>
+    </div>
+    <div id="sidebarNav"></div>
+    <div class="sidebar-bottom">
+      <div class="user-info">
+        <div class="user-avatar" id="sidebarAvatar">A</div>
+        <div>
+          <div class="user-name" id="sidebarName">User</div>
+          <div class="user-role" id="sidebarRole">Role</div>
+        </div>
+      </div>
+      <button class="btn btn-secondary w-full btn-sm" style="margin-top:0.75rem" onclick="doLogout()">🚪 Sign Out</button>
+    </div>
+  </nav>
+
+  <!-- MAIN -->
+  <main class="main-content" id="mainContent">
+    <div class="topbar">
+      <div style="display:flex;align-items:center;gap:12px">
+        <button class="hamburger" id="hamburgerBtn" onclick="toggleSidebar()">☰</button>
+        <div class="topbar-title" id="topbarTitle">Dashboard</div>
+      </div>
+      <div class="topbar-actions">
+        <button class="theme-toggle" onclick="toggleTheme()" title="Toggle theme">🌙</button>
+        <button class="notif-btn" onclick="showPanel('notifications')">
+          🔔<span class="notif-dot"></span>
+        </button>
+      </div>
+    </div>
+
+    <!-- ======== CLIENT PANELS ======== -->
+    <div id="panel-search" class="panel">
+      <div class="glass-card search-card fade-in">
+        <h3>🔍 Find a Ride</h3>
+        <div class="search-grid">
+          <div class="form-group">
+            <label class="form-label">Pickup Location</label>
+            <input class="form-input" id="searchPickup" placeholder="e.g. MG Road" list="locationList">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Destination</label>
+            <input class="form-input" id="searchDest" placeholder="e.g. Airport" list="locationList">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Seats Required</label>
+            <select class="form-input" id="searchSeats">
+              <option value="1">1 Seat</option>
+              <option value="2">2 Seats</option>
+              <option value="3">3 Seats</option>
+              <option value="5">5 Seats</option>
+              <option value="7">7 Seats</option>
+              <option value="10">7+ Seats</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label" style="visibility:hidden">Search</label>
+            <button class="btn btn-primary" onclick="searchRides()">🔍 Search Rides</button>
+          </div>
+        </div>
+        <datalist id="locationList">
+          <option value="MG Road"></option><option value="Airport"></option>
+          <option value="City Center"></option><option value="Railway Station"></option>
+          <option value="Tech Park"></option><option value="University"></option>
+          <option value="Mall Road"></option><option value="Bus Stand"></option>
+        </datalist>
+      </div>
+
+      <!-- MAP -->
+      <div class="map-container fade-in">
+        <div class="map-inner">
+          <div class="map-bg">
+            <div class="map-grid"></div>
+            <div class="map-road h" style="top:30%"></div>
+            <div class="map-road h" style="top:60%"></div>
+            <div class="map-road v" style="left:25%"></div>
+            <div class="map-road v" style="left:65%"></div>
+            <!-- Cars -->
+            <div class="map-marker car map-car-anim" style="top:28%;animation-duration:7s">
+              <div class="pin"><span>🚗</span></div>
+              <div class="label">Car A</div>
+            </div>
+            <div class="map-marker car" style="top:58%;left:40%;animation:carMove 9s 2s linear infinite">
+              <div class="pin"><span>🚗</span></div>
+              <div class="label">Car B</div>
+            </div>
+            <div class="map-marker pickup" style="top:25%;left:20%">
+              <div class="pin"><span>📍</span></div>
+              <div class="label">Pickup</div>
+            </div>
+            <div class="map-marker dest" style="top:55%;left:75%">
+              <div class="pin"><span>🏁</span></div>
+              <div class="label">Destination</div>
+            </div>
+          </div>
+          <div class="map-overlay">
+            <div class="map-legend"><div class="dot" style="background:var(--accent)"></div> Cars Available</div>
+            <div class="map-legend"><div class="dot" style="background:var(--accent2)"></div> Pickup</div>
+            <div class="map-legend"><div class="dot" style="background:var(--accent3)"></div> Destination</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- FILTERS -->
+      <div class="results-header" id="resultsHeader" style="display:none">
+        <div>
+          <div id="resultsCount" style="font-weight:700"></div>
+          <div class="text-muted text-sm" id="resultsSubtitle"></div>
+        </div>
+        <div class="filter-bar">
+          <button class="filter-chip active" onclick="setFilter('all',this)">All</button>
+          <button class="filter-chip" onclick="setFilter('price',this)">💰 Price</button>
+          <button class="filter-chip" onclick="setFilter('rating',this)">⭐ Rating</button>
+          <button class="filter-chip" onclick="setFilter('seats',this)">💺 Seats</button>
+          <button class="filter-chip" onclick="setFilter('distance',this)">📍 Distance</button>
+        </div>
+      </div>
+      <div class="cars-grid" id="carsGrid"></div>
+    </div>
+
+    <div id="panel-mybookings" class="panel">
+      <div class="section-title">My Bookings</div>
+      <div id="myBookingsList" class="cars-grid"></div>
+    </div>
+
+    <div id="panel-history" class="panel fade-in">
+      <div class="section-title">Ride History</div>
+      <div class="glass-card" style="overflow:hidden">
+        <div class="table-wrap">
+          <table class="data-table" id="historyTable">
+            <thead>
+              <tr>
+                <th>Date</th><th>Driver</th><th>Car</th><th>Route</th>
+                <th>Seats</th><th>Amount</th><th>Rating</th><th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="historyBody"></tbody>
+          </table>
+        </div>
+      </div>
+      <div class="co2-card" style="margin-top:1rem">
+        <div class="co2-icon">🌿</div>
+        <div>
+          <div class="co2-value" id="co2Value">0.0 kg</div>
+          <div class="co2-text">CO₂ saved by ride sharing this month</div>
+          <div class="text-xs text-muted" style="margin-top:4px">Equivalent to planting <span id="treesVal">0</span> trees</div>
+        </div>
+      </div>
+    </div>
+
+    <div id="panel-safety" class="panel fade-in">
+      <div class="section-title">Safety & Emergency</div>
+      <div class="stat-grid" style="margin-bottom:1.5rem">
+        <div class="glass-card" style="padding:1.5rem">
+          <div style="margin-bottom:1rem"><strong>🆘 Emergency SOS</strong></div>
+          <p class="text-muted text-sm" style="margin-bottom:1rem">Press to alert emergency contacts and share your live location</p>
+          <button class="sos-button btn" onclick="triggerSOS()">🆘 EMERGENCY SOS</button>
+        </div>
+        <div class="glass-card" style="padding:1.5rem">
+          <div style="margin-bottom:1rem"><strong>📤 Share Ride</strong></div>
+          <p class="text-muted text-sm" style="margin-bottom:1rem">Share your trip details with family/friends</p>
+          <button class="btn btn-secondary" onclick="shareRide()">📱 Share with Family</button>
+        </div>
+        <div class="glass-card" style="padding:1.5rem">
+          <div style="margin-bottom:1rem"><strong>🔄 Request Reassignment</strong></div>
+          <p class="text-muted text-sm" style="margin-bottom:1rem">Feeling uncomfortable? Request a different driver/car</p>
+          <button class="btn btn-secondary" onclick="requestReassign()">🔄 Reassign Driver</button>
+        </div>
+        <div class="glass-card" style="padding:1.5rem">
+          <div style="margin-bottom:1rem"><strong>📝 Complaint</strong></div>
+          <p class="text-muted text-sm" style="margin-bottom:1rem">Report an issue with your ride or driver</p>
+          <button class="btn btn-secondary" onclick="openComplaint()">📝 File Complaint</button>
+        </div>
+      </div>
+      <div class="glass-card" style="padding:1.5rem">
+        <div class="section-title">Emergency Contacts</div>
+        <div id="emergencyContacts">
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:0.75rem 0;border-bottom:1px solid var(--border)">
+            <div><div style="font-weight:600">Priya (Sister)</div><div class="text-muted text-sm">+91 98765 43210</div></div>
+            <button class="btn btn-sm btn-secondary">📞 Call</button>
+          </div>
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:0.75rem 0">
+            <div><div style="font-weight:600">Raj (Friend)</div><div class="text-muted text-sm">+91 87654 32109</div></div>
+            <button class="btn btn-sm btn-secondary">📞 Call</button>
+          </div>
+        </div>
+        <button class="btn btn-secondary btn-sm" style="margin-top:1rem" onclick="showNotif('Contact Added','Emergency contact saved successfully','green')">+ Add Contact</button>
+      </div>
+    </div>
+
+    <div id="panel-chat" class="panel fade-in">
+      <div class="section-title">Messages</div>
+      <div class="glass-card" style="overflow:hidden">
+        <div style="padding:1rem;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px">
+          <div id="chatHeaderAvatar" class="user-avatar" style="background:linear-gradient(135deg,#6C63FF,#4A44CC)">?</div>
+          <div><div id="chatHeaderName" style="font-weight:700">Select a chat</div><div id="chatHeaderSub" class="text-muted text-sm">🟢 Online</div></div>
+        </div>
+        <div class="chat-window">
+          <div class="chat-messages" id="chatMessages">
+            <div style="text-align:center;color:var(--text3);margin-top:2rem">Select a booking to start chatting</div>
+          </div>
+          <div class="chat-input-row" id="chatInputRow" style="opacity:0.5; pointer-events:none">
+            <input class="chat-input" id="chatInput" placeholder="Type a message..." onkeypress="if(event.key==='Enter')sendChat()">
+            <button class="btn btn-primary btn-sm" onclick="sendChat()">Send ➤</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ======== DRIVER PANELS ======== -->
+    <div id="panel-drivertrip" class="panel fade-in">
+      <div class="section-title">Create Trip Offer</div>
+      <div class="glass-card" style="padding:1.5rem;margin-bottom:1rem">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem">
+          <div class="form-group">
+            <label class="form-label">Car Model</label>
+            <input class="form-input" id="d_model" placeholder="e.g. Hyundai Creta">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Car Number</label>
+            <input class="form-input" id="d_number" placeholder="e.g. KA-01-AB-1234">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Total Seats</label>
+            <select class="form-input" id="d_seats"><option>4</option><option>5</option><option>6</option><option>7</option><option>8</option></select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Seat Price (₹)</label>
+            <input class="form-input" id="d_price" type="number" placeholder="e.g. 150">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Pickup Location</label>
+            <input class="form-input" id="d_pickup" placeholder="e.g. MG Road">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Destination</label>
+            <input class="form-input" id="d_dest" placeholder="e.g. Airport">
+          </div>
+        </div>
+        <div class="form-group" style="margin-top:1rem">
+          <label class="form-label">Upload Car Image</label>
+          <div class="upload-area" id="uploadArea">
+            <input type="file" class="file-input" id="carImageInput" accept="image/*" onchange="previewCarImage(this)">
+            <div id="uploadPlaceholder">
+              <div style="font-size:2.5rem">📸</div>
+              <div style="font-weight:600;margin-top:8px">Click or drag to upload car image</div>
+              <div class="text-muted text-sm">JPG, PNG up to 5MB</div>
+            </div>
+            <img id="carImagePreview" class="upload-preview hidden" alt="Car Preview">
+          </div>
+        </div>
+        <button class="btn btn-primary" style="margin-top:1rem" onclick="createTrip()">🚀 Create Trip Offer</button>
+      </div>
+
+      <div class="section-title">Upcoming Trips</div>
+      <div id="driverTrips" class="cars-grid"></div>
+    </div>
+
+    <div id="panel-passengers" class="panel fade-in">
+      <div class="section-title">Passenger Management</div>
+      <div id="passengerList" class="glass-card" style="overflow:hidden">
+        <div class="table-wrap">
+          <table class="data-table">
+            <thead><tr><th>Passenger</th><th>Gender</th><th>Seats</th><th>Pickup</th><th>Destination</th><th>Status</th><th>Actions</th></tr></thead>
+            <tbody id="passengerBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div id="panel-earnings" class="panel fade-in">
+      <div class="stat-grid">
+        <div class="stat-card green"><div class="stat-icon">💰</div><div class="stat-label">Total Earnings</div><div class="stat-value text-accent">₹12,450</div><div class="stat-sub">This month</div></div>
+        <div class="stat-card purple"><div class="stat-icon">🚗</div><div class="stat-label">Completed Rides</div><div class="stat-value">47</div><div class="stat-sub">Total rides</div></div>
+        <div class="stat-card warn"><div class="stat-icon">⭐</div><div class="stat-label">Avg Rating</div><div class="stat-value">4.8</div><div class="stat-sub">From 47 ratings</div></div>
+        <div class="stat-card red"><div class="stat-icon">👥</div><div class="stat-label">Passengers</div><div class="stat-value">128</div><div class="stat-sub">Served total</div></div>
+      </div>
+      <div class="section-title">Earnings Breakdown</div>
+      <div class="glass-card" style="padding:1.5rem">
+        <div id="earningsChart"></div>
+      </div>
+    </div>
+
+    <!-- ======== ADMIN PANELS ======== -->
+    <div id="panel-adminoverview" class="panel fade-in">
+      <div class="stat-grid">
+        <div class="stat-card green"><div class="stat-icon">👥</div><div class="stat-label">Total Users</div><div class="stat-value">1,248</div><div class="stat-sub">+12% this week</div></div>
+        <div class="stat-card purple"><div class="stat-icon">🚗</div><div class="stat-label">Active Drivers</div><div class="stat-value">184</div><div class="stat-sub">Currently online</div></div>
+        <div class="stat-card warn"><div class="stat-icon">🎫</div><div class="stat-label">Rides Today</div><div class="stat-value">673</div><div class="stat-sub">Completed</div></div>
+        <div class="stat-card red"><div class="stat-icon">💵</div><div class="stat-label">Revenue</div><div class="stat-value">₹84K</div><div class="stat-sub">This month</div></div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem">
+        <div>
+          <div class="section-title">Recent Complaints</div>
+          <div class="glass-card" style="padding:1rem" id="adminComplaints"></div>
+        </div>
+        <div>
+          <div class="section-title">Driver Verifications Pending</div>
+          <div class="glass-card" style="padding:1rem" id="adminVerifications"></div>
+        </div>
+      </div>
+    </div>
+
+    <div id="panel-adminusers" class="panel fade-in">
+      <div class="section-title">User Management</div>
+      <div class="glass-card admin-table-card">
+        <div class="table-wrap">
+          <table class="data-table">
+            <thead><tr><th>Name</th><th>Role</th><th>Email</th><th>Status</th><th>Rides</th><th>Actions</th></tr></thead>
+            <tbody id="adminUsersBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div id="panel-adminrides" class="panel fade-in">
+      <div class="section-title">All Rides</div>
+      <div class="glass-card">
+        <div class="table-wrap">
+          <table class="data-table">
+            <thead><tr><th>ID</th><th>Driver</th><th>Client</th><th>Route</th><th>Seats</th><th>Amount</th><th>Status</th></tr></thead>
+            <tbody id="adminRidesBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div id="panel-notifications" class="panel fade-in">
+      <div class="section-title">Notifications</div>
+      <div class="glass-card" style="padding:1rem" id="notifList"></div>
+    </div>
+
+    <!-- SHARED PANEL: dashboard/overview -->
+    <div id="panel-dashboard" class="panel fade-in">
+      <div id="dashboardContent"></div>
+    </div>
+  </main>
+</div>
+
+<!-- ============================================================
+     MODALS
+     ============================================================ -->
+
+<!-- Booking Modal -->
+<div class="modal-backdrop hidden" id="bookingModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>📋 Booking Summary</h3>
+      <button class="modal-close" onclick="closeModal('bookingModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div id="bookingSummaryContent"></div>
+      <div style="margin-top:1.5rem">
+        <div class="section-title" style="margin-bottom:1rem">Payment Method</div>
+        <div class="payment-options">
+          <div class="payment-option selected" onclick="selectPayment(this)">
+            <div class="pay-icon">📱</div>
+            <div class="pay-label">UPI</div>
+          </div>
+          <div class="payment-option" onclick="selectPayment(this)">
+            <div class="pay-icon">💳</div>
+            <div class="pay-label">Credit Card</div>
+          </div>
+          <div class="payment-option" onclick="selectPayment(this)">
+            <div class="pay-icon">🏦</div>
+            <div class="pay-label">Debit Card</div>
+          </div>
+          <div class="payment-option" onclick="selectPayment(this)">
+            <div class="pay-icon">👜</div>
+            <div class="pay-label">Wallet</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('bookingModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="confirmBooking()">✅ Confirm Booking</button>
+    </div>
+  </div>
+</div>
+
+<!-- Rating Modal -->
+<div class="modal-backdrop hidden" id="ratingModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>⭐ Rate Your Experience</h3>
+      <button class="modal-close" onclick="closeModal('ratingModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div style="text-align:center;margin-bottom:1.5rem">
+        <div class="user-avatar" style="width:64px;height:64px;font-size:1.5rem;margin:0 auto 10px">R</div>
+        <div style="font-weight:700;font-size:1.1rem" id="ratingName">Ravi Kumar</div>
+        <div class="text-muted text-sm">Your Driver</div>
+      </div>
+      <div style="text-align:center;margin-bottom:1.5rem">
+        <div class="rating-stars" style="justify-content:center" id="ratingStars">
+          <span class="rating-star active" onclick="setRating(1)">★</span>
+          <span class="rating-star active" onclick="setRating(2)">★</span>
+          <span class="rating-star active" onclick="setRating(3)">★</span>
+          <span class="rating-star active" onclick="setRating(4)">★</span>
+          <span class="rating-star inactive" onclick="setRating(5)">★</span>
+        </div>
+        <div class="text-muted text-sm" style="margin-top:8px" id="ratingLabel">Good</div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Review (optional)</label>
+        <textarea class="form-input" id="ratingReview" rows="3" placeholder="Share your experience..."></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('ratingModal')">Skip</button>
+      <button class="btn btn-primary" onclick="submitRating()">Submit Rating</button>
+    </div>
+  </div>
+</div>
+
+<!-- Complaint Modal -->
+<div class="modal-backdrop hidden" id="complaintModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>📝 File a Complaint</h3>
+      <button class="modal-close" onclick="closeModal('complaintModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group" style="margin-bottom:1rem">
+        <label class="form-label">Issue Type</label>
+        <select class="form-input">
+          <option>Driver Behavior</option>
+          <option>Route Deviation</option>
+          <option>Overcharging</option>
+          <option>Vehicle Condition</option>
+          <option>Safety Concern</option>
+          <option>Other</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Description</label>
+        <textarea class="form-input" rows="4" placeholder="Describe your issue in detail..."></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('complaintModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="submitComplaint()">Submit Complaint</button>
+    </div>
+    <!-- Custom Script -->
+    <script src="/static/script.js"></script>
+</body>
+</html>
